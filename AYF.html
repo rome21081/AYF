@@ -1,1264 +1,1403 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Arcade Games Hub</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
 
-        /* Navigation Bar */
+      /* Navigation Bar */
+      .navbar {
+        background: rgba(26, 32, 44, 0.95);
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .navbar-brand {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #f6ad55;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+      }
+
+      .nav-btn {
+        padding: 12px 30px;
+        background: transparent;
+        color: #fff;
+        border: 2px solid #4a5568;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+
+      .nav-btn:hover {
+        background: #4a5568;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .nav-btn.active {
+        background: #f6ad55;
+        color: #1a202c;
+        border-color: #f6ad55;
+      }
+
+      /* Page Container */
+      .page {
+        display: none;
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.5s ease;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Claw Machine Styles */
+      .claw-container {
+        background: rgba(45, 55, 72, 0.95);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      }
+
+      .game-header {
+        text-align: center;
+        color: #fff;
+        margin-bottom: 30px;
+      }
+
+      .game-header h1 {
+        font-size: 3em;
+        margin-bottom: 10px;
+        background: linear-gradient(135deg, #f6ad55, #f56565);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .game-header p {
+        font-size: 1.2em;
+        color: #cbd5e0;
+      }
+
+      .claw-area {
+        position: relative;
+        height: 500px;
+        background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+        border: 6px solid #4a5568;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .claw {
+        position: absolute;
+        width: 70px;
+        height: 100px;
+        left: 50%;
+        top: 20px;
+        transform: translateX(-50%);
+        transition: left 0.3s ease, top 0.5s ease;
+        z-index: 10;
+      }
+
+      .claw-cable {
+        width: 3px;
+        height: 50px;
+        background: linear-gradient(180deg, #cbd5e0, #718096);
+        margin: 0 auto;
+      }
+
+      .claw-hook {
+        width: 70px;
+        height: 50px;
+        background: linear-gradient(135deg, #f6ad55, #ed8936);
+        border-radius: 15px;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .claw-hook::before,
+      .claw-hook::after {
+        content: "";
+        position: absolute;
+        width: 4px;
+        height: 25px;
+        background: #e53e3e;
+        bottom: -25px;
+      }
+
+      .claw-hook::before {
+        left: 15px;
+        transform: rotate(-10deg);
+      }
+
+      .claw-hook::after {
+        right: 15px;
+        transform: rotate(10deg);
+      }
+
+      .prize-area {
+        position: absolute;
+        bottom: 30px;
+        left: 0;
+        right: 0;
+        height: 250px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-end;
+        padding: 30px;
+        gap: 15px;
+      }
+
+      .prize-ball {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: bold;
+        font-size: 1.5em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(72, 187, 120, 0.4);
+        position: absolute;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .prize-ball:hover {
+        transform: translateY(-10px) scale(1.1);
+        box-shadow: 0 10px 30px rgba(72, 187, 120, 0.6);
+      }
+
+      .prize-ball::after {
+        content: "?";
+      }
+
+      .prize-ball.grabbed {
+        animation: grabbed 0.8s ease forwards;
+      }
+
+      @keyframes grabbed {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.3) translateY(-50px);
+        }
+        100% {
+          transform: scale(0.5) translateY(-100px);
+          opacity: 0;
+        }
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+      }
+
+      .control-btn {
+        padding: 18px 40px;
+        font-size: 1.3em;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .control-btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      .control-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .move-btn {
+        background: linear-gradient(135deg, #4299e1, #3182ce);
+        color: #fff;
+      }
+
+      .grab-btn {
+        background: linear-gradient(135deg, #f56565, #e53e3e);
+        color: #fff;
+        font-size: 1.5em;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 5px 20px rgba(245, 101, 101, 0.5);
+        }
+        50% {
+          box-shadow: 0 5px 30px rgba(245, 101, 101, 0.8);
+        }
+      }
+
+      /* Platform Game Styles */
+      .platform-container {
+        background: rgba(26, 32, 44, 0.95);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        color: #fff;
+      }
+
+      .game-board {
+        position: relative;
+        height: 600px;
+        background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+        border: 6px solid #4a5568;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin-top: 30px;
+      }
+
+      .level-platform {
+        position: absolute;
+        width: 85%;
+        left: 7.5%;
+        height: 100px;
+        background: linear-gradient(135deg, #4a5568, #2d3748);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 30px;
+        transition: all 0.6s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border: 3px solid #718096;
+      }
+
+      .platform-1 {
+        bottom: 50px;
+      }
+
+      .platform-2 {
+        bottom: 240px;
+      }
+
+      .platform-3 {
+        bottom: 430px;
+      }
+
+      .level-platform.locked {
+        background: linear-gradient(135deg, #2d3748, #1a202c);
+        opacity: 0.4;
+        border-color: #2d3748;
+      }
+
+      .level-platform.completed {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        border-color: #48bb78;
+        box-shadow: 0 10px 40px rgba(72, 187, 120, 0.6);
+      }
+
+      .level-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .level-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #f6ad55;
+      }
+
+      .level-icon {
+        font-size: 3em;
+      }
+
+      .player-character {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #f6ad55, #ed8936);
+        border-radius: 50%;
+        position: absolute;
+        bottom: 80px;
+        left: 60px;
+        transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        box-shadow: 0 10px 30px rgba(246, 173, 85, 0.6);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2em;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: linear-gradient(135deg, #2d3748, #1a202c);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        max-width: 600px;
+        width: 90%;
+        color: #fff;
+        animation: slideUp 0.4s ease;
+        border: 3px solid #4a5568;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        margin-bottom: 25px;
+      }
+
+      .modal-header h2 {
+        color: #f6ad55;
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+
+      .question-text {
+        font-size: 1.3em;
+        line-height: 1.6;
+        margin: 20px 0;
+        color: #e2e8f0;
+      }
+
+      .answer-input {
+        width: 100%;
+        padding: 18px;
+        margin: 20px 0;
+        border: 3px solid #4a5568;
+        border-radius: 12px;
+        font-size: 1.1em;
+        background: #1a202c;
+        color: #fff;
+        transition: border-color 0.3s ease;
+      }
+
+      .answer-input:focus {
+        outline: none;
+        border-color: #f6ad55;
+      }
+
+      .modal-btn {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2em;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(72, 187, 120, 0.4);
+      }
+
+      .modal-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
+      }
+
+      .feedback-message {
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+        font-size: 1.1em;
+        font-weight: bold;
+        text-align: center;
+        display: none;
+      }
+
+      .feedback-message.show {
+        display: block;
+        animation: slideUp 0.4s ease;
+      }
+
+      .feedback-message.correct {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: #fff;
+      }
+
+      .feedback-message.incorrect {
+        background: linear-gradient(135deg, #f56565, #e53e3e);
+        color: #fff;
+      }
+
+      .prize-steps {
+        background: rgba(74, 85, 104, 0.5);
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+        border-left: 4px solid #48bb78;
+        display: none;
+      }
+
+      .prize-steps.show {
+        display: block;
+        animation: slideUp 0.4s ease;
+      }
+
+      .prize-steps h3 {
+        color: #48bb78;
+        margin-bottom: 15px;
+        font-size: 1.3em;
+      }
+
+      .prize-steps p {
+        line-height: 1.8;
+        color: #e2e8f0;
+      }
+
+      /* Win Message */
+      .win-modal {
+        background: linear-gradient(135deg, #f6ad55, #f56565);
+        padding: 60px 40px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: bounceIn 0.6s ease;
+      }
+
+      @keyframes bounceIn {
+        0% {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .win-modal h2 {
+        font-size: 3.5em;
+        color: #fff;
+        margin-bottom: 20px;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .win-modal p {
+        font-size: 1.8em;
+        color: #fff;
+        margin: 30px 0;
+        font-weight: bold;
+      }
+
+      .continue-btn {
+        padding: 20px 50px;
+        background: #fff;
+        color: #f56565;
+        border: none;
+        border-radius: 15px;
+        font-size: 1.3em;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .continue-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Jigsaw Puzzle Styles */
+      .puzzle-container {
+        background: rgba(45, 55, 72, 0.95);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      }
+
+      .puzzle-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .difficulty-btn {
+        padding: 15px 35px;
+        background: linear-gradient(135deg, #4299e1, #3182ce);
+        color: #fff;
+        border: 3px solid transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .difficulty-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      .difficulty-btn.selected {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        border-color: #48bb78;
+      }
+
+      .puzzle-board {
+        position: relative;
+        width: 800px;
+        height: 800px;
+        max-width: 100%;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #2d3748, #1a202c);
+        border: 6px solid #4a5568;
+        border-radius: 20px;
+        box-shadow: inset 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        grid-template-rows: repeat(10, 1fr);
+        gap: 1px;
+        padding: 5px;
+      }
+
+      .puzzle-piece {
+        background-size: 1000% 1000%;
+        background-position: center;
+        border: 1px solid rgba(74, 85, 104, 0.5);
+        cursor: move;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        user-select: none;
+        position: relative;
+      }
+
+      .puzzle-piece:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+        z-index: 10;
+        border-color: #f6ad55;
+      }
+
+      .puzzle-piece.dragging {
+        opacity: 0.4;
+        cursor: grabbing;
+      }
+
+      .puzzle-piece.correct {
+        border-color: #48bb78;
+        box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
+      }
+
+      @keyframes correctPulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .puzzle-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 30px;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .stat-item {
+        background: rgba(74, 85, 104, 0.5);
+        padding: 20px 40px;
+        border-radius: 12px;
+        text-align: center;
+        border: 2px solid #4a5568;
+      }
+
+      .stat-label {
+        color: #cbd5e0;
+        font-size: 1em;
+        margin-bottom: 5px;
+      }
+
+      .stat-value {
+        color: #f6ad55;
+        font-size: 2em;
+        font-weight: bold;
+      }
+
+      .reset-btn {
+        padding: 18px 40px;
+        background: linear-gradient(135deg, #f56565, #e53e3e);
+        color: #fff;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 1.2em;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        margin-top: 20px;
+      }
+
+      .reset-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(245, 101, 101, 0.5);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
         .navbar {
-            background: rgba(26, 32, 44, 0.95);
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .navbar-brand {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #f6ad55;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-btn {
-            padding: 12px 30px;
-            background: transparent;
-            color: #fff;
-            border: 2px solid #4a5568;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .nav-btn:hover {
-            background: #4a5568;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .nav-btn.active {
-            background: #f6ad55;
-            color: #1a202c;
-            border-color: #f6ad55;
-        }
-
-        /* Page Container */
-        .page {
-            display: none;
-            padding: 40px 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Claw Machine Styles */
-        .claw-container {
-            background: rgba(45, 55, 72, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        }
-
-        .game-header {
-            text-align: center;
-            color: #fff;
-            margin-bottom: 30px;
+          flex-direction: column;
+          gap: 15px;
+          padding: 20px;
         }
 
         .game-header h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #f6ad55, #f56565);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+          font-size: 2em;
         }
 
-        .game-header p {
-            font-size: 1.2em;
-            color: #cbd5e0;
-        }
-
-        .claw-area {
-            position: relative;
-            height: 500px;
-            background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
-            border: 6px solid #4a5568;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .claw {
-            position: absolute;
-            width: 70px;
-            height: 100px;
-            left: 50%;
-            top: 20px;
-            transform: translateX(-50%);
-            transition: left 0.3s ease, top 0.5s ease;
-            z-index: 10;
-        }
-
-        .claw-cable {
-            width: 3px;
-            height: 50px;
-            background: linear-gradient(180deg, #cbd5e0, #718096);
-            margin: 0 auto;
-        }
-
-        .claw-hook {
-            width: 70px;
-            height: 50px;
-            background: linear-gradient(135deg, #f6ad55, #ed8936);
-            border-radius: 15px;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .claw-hook::before,
-        .claw-hook::after {
-            content: '';
-            position: absolute;
-            width: 4px;
-            height: 25px;
-            background: #e53e3e;
-            bottom: -25px;
-        }
-
-        .claw-hook::before {
-            left: 15px;
-            transform: rotate(-10deg);
-        }
-
-        .claw-hook::after {
-            right: 15px;
-            transform: rotate(10deg);
-        }
-
-        .prize-area {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            height: 250px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: flex-end;
-            padding: 30px;
-            gap: 15px;
-        }
-
-        .prize-ball {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: bold;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(72, 187, 120, 0.4);
-            position: absolute;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .prize-ball:hover {
-            transform: translateY(-10px) scale(1.1);
-            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.6);
-        }
-
-        .prize-ball::after {
-            content: '?';
-        }
-
-        .prize-ball.grabbed {
-            animation: grabbed 0.8s ease forwards;
-        }
-
-        @keyframes grabbed {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3) translateY(-50px); }
-            100% { transform: scale(0.5) translateY(-100px); opacity: 0; }
+        .claw-area,
+        .game-board {
+          height: 400px;
         }
 
         .controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-            flex-wrap: wrap;
+          gap: 10px;
         }
 
         .control-btn {
-            padding: 18px 40px;
-            font-size: 1.3em;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+          padding: 15px 25px;
+          font-size: 1.1em;
         }
-
-        .control-btn:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        }
-
-        .control-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .move-btn {
-            background: linear-gradient(135deg, #4299e1, #3182ce);
-            color: #fff;
-        }
-
-        .grab-btn {
-            background: linear-gradient(135deg, #f56565, #e53e3e);
-            color: #fff;
-            font-size: 1.5em;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 5px 20px rgba(245, 101, 101, 0.5); }
-            50% { box-shadow: 0 5px 30px rgba(245, 101, 101, 0.8); }
-        }
-
-        /* Platform Game Styles */
-        .platform-container {
-            background: rgba(26, 32, 44, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            color: #fff;
-        }
-
-        .game-board {
-            position: relative;
-            height: 600px;
-            background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
-            border: 6px solid #4a5568;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
-            margin-top: 30px;
-        }
-
-        .level-platform {
-            position: absolute;
-            width: 85%;
-            left: 7.5%;
-            height: 100px;
-            background: linear-gradient(135deg, #4a5568, #2d3748);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            transition: all 0.6s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 3px solid #718096;
-        }
-
-        .platform-1 {
-            bottom: 50px;
-        }
-
-        .platform-2 {
-            bottom: 240px;
-        }
-
-        .platform-3 {
-            bottom: 430px;
-        }
-
-        .level-platform.locked {
-            background: linear-gradient(135deg, #2d3748, #1a202c);
-            opacity: 0.4;
-            border-color: #2d3748;
-        }
-
-        .level-platform.completed {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            border-color: #48bb78;
-            box-shadow: 0 10px 40px rgba(72, 187, 120, 0.6);
-        }
-
-        .level-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .level-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #f6ad55;
-        }
-
-        .level-icon {
-            font-size: 3em;
-        }
-
-        .player-character {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #f6ad55, #ed8936);
-            border-radius: 50%;
-            position: absolute;
-            bottom: 80px;
-            left: 60px;
-            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 10px 30px rgba(246, 173, 85, 0.6);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #2d3748, #1a202c);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            max-width: 600px;
-            width: 90%;
-            color: #fff;
-            animation: slideUp 0.4s ease;
-            border: 3px solid #4a5568;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
-            margin-bottom: 25px;
-        }
-
-        .modal-header h2 {
-            color: #f6ad55;
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .question-text {
-            font-size: 1.3em;
-            line-height: 1.6;
-            margin: 20px 0;
-            color: #e2e8f0;
-        }
-
-        .answer-input {
-            width: 100%;
-            padding: 18px;
-            margin: 20px 0;
-            border: 3px solid #4a5568;
-            border-radius: 12px;
-            font-size: 1.1em;
-            background: #1a202c;
-            color: #fff;
-            transition: border-color 0.3s ease;
-        }
-
-        .answer-input:focus {
-            outline: none;
-            border-color: #f6ad55;
-        }
-
-        .modal-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.2em;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(72, 187, 120, 0.4);
-        }
-
-        .modal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.6);
-        }
-
-        .feedback-message {
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            font-size: 1.1em;
-            font-weight: bold;
-            text-align: center;
-            display: none;
-        }
-
-        .feedback-message.show {
-            display: block;
-            animation: slideUp 0.4s ease;
-        }
-
-        .feedback-message.correct {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            color: #fff;
-        }
-
-        .feedback-message.incorrect {
-            background: linear-gradient(135deg, #f56565, #e53e3e);
-            color: #fff;
-        }
-
-        .prize-steps {
-            background: rgba(74, 85, 104, 0.5);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-            border-left: 4px solid #48bb78;
-            display: none;
-        }
-
-        .prize-steps.show {
-            display: block;
-            animation: slideUp 0.4s ease;
-        }
-
-        .prize-steps h3 {
-            color: #48bb78;
-            margin-bottom: 15px;
-            font-size: 1.3em;
-        }
-
-        .prize-steps p {
-            line-height: 1.8;
-            color: #e2e8f0;
-        }
-
-        /* Win Message */
-        .win-modal {
-            background: linear-gradient(135deg, #f6ad55, #f56565);
-            padding: 60px 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            animation: bounceIn 0.6s ease;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .win-modal h2 {
-            font-size: 3.5em;
-            color: #fff;
-            margin-bottom: 20px;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-        }
-
-        .win-modal p {
-            font-size: 1.8em;
-            color: #fff;
-            margin: 30px 0;
-            font-weight: bold;
-        }
-
-        .continue-btn {
-            padding: 20px 50px;
-            background: #fff;
-            color: #f56565;
-            border: none;
-            border-radius: 15px;
-            font-size: 1.3em;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-
-        .continue-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-        }
-
-        /* Jigsaw Puzzle Styles */
-        .puzzle-container {
-            background: rgba(45, 55, 72, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        }
-
-        .puzzle-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .difficulty-btn {
-            padding: 15px 35px;
-            background: linear-gradient(135deg, #4299e1, #3182ce);
-            color: #fff;
-            border: 3px solid transparent;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-
-        .difficulty-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        }
-
-        .difficulty-btn.selected {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            border-color: #48bb78;
-        }
-
-        .puzzle-board {
-            position: relative;
-            width: 800px;
-            height: 800px;
-            max-width: 100%;
-            margin: 0 auto;
-            background: linear-gradient(135deg, #2d3748, #1a202c);
-            border: 6px solid #4a5568;
-            border-radius: 20px;
-            box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            grid-template-rows: repeat(10, 1fr);
-            gap: 1px;
-            padding: 5px;
-        }
-
-        .puzzle-piece {
-            background-size: 1000% 1000%;
-            background-position: center;
-            border: 1px solid rgba(74, 85, 104, 0.5);
-            cursor: move;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            user-select: none;
-            position: relative;
-        }
-
-        .puzzle-piece:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
-            z-index: 10;
-            border-color: #f6ad55;
-        }
-
-        .puzzle-piece.dragging {
-            opacity: 0.4;
-            cursor: grabbing;
-        }
-
-        .puzzle-piece.correct {
-            border-color: #48bb78;
-            box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
-        }
-
-        @keyframes correctPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .puzzle-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .stat-item {
-            background: rgba(74, 85, 104, 0.5);
-            padding: 20px 40px;
-            border-radius: 12px;
-            text-align: center;
-            border: 2px solid #4a5568;
-        }
-
-        .stat-label {
-            color: #cbd5e0;
-            font-size: 1em;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            color: #f6ad55;
-            font-size: 2em;
-            font-weight: bold;
-        }
-
-        .reset-btn {
-            padding: 18px 40px;
-            background: linear-gradient(135deg, #f56565, #e53e3e);
-            color: #fff;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 1.2em;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            margin-top: 20px;
-        }
-
-        .reset-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 101, 101, 0.5);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 15px;
-                padding: 20px;
-            }
-
-            .game-header h1 {
-                font-size: 2em;
-            }
-
-            .claw-area, .game-board {
-                height: 400px;
-            }
-
-            .controls {
-                gap: 10px;
-            }
-
-            .control-btn {
-                padding: 15px 25px;
-                font-size: 1.1em;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="navbar-brand">🎮 ARCADE GAMES</div>
-        <div class="nav-links">
-            <button class="nav-btn active" onclick="switchPage('claw')">🎯 Claw Machine</button>
-            <button class="nav-btn" onclick="switchPage('platform')">🏆 Level Challenge</button>
-            <button class="nav-btn" onclick="switchPage('puzzle')">🧩 Jigsaw Puzzle</button>
-        </div>
+      <div class="navbar-brand">🎮 ARCADE GAMES</div>
+      <div class="nav-links">
+        <button class="nav-btn active" onclick="switchPage('claw')">
+          🎯 Claw Machine
+        </button>
+        <button class="nav-btn" onclick="switchPage('platform')">
+          🏆 Level Challenge
+        </button>
+        <button class="nav-btn" onclick="switchPage('puzzle')">
+          🧩 Jigsaw Puzzle
+        </button>
+      </div>
     </nav>
 
     <!-- Page 1: Claw Machine Game -->
     <div class="page active" id="clawPage">
-        <div class="claw-container">
-            <div class="game-header">
-                <h1>🎯 CLAW MACHINE 🎯</h1>
-                <p>Grab the prizes and answer questions!</p>
-            </div>
-
-            <div class="claw-area">
-                <div class="claw" id="claw">
-                    <div class="claw-cable"></div>
-                    <div class="claw-hook"></div>
-                </div>
-                
-                <div class="prize-area" id="prizeArea"></div>
-            </div>
-
-            <div class="controls">
-                <button class="control-btn move-btn" onclick="moveClaw('left')">⬅ LEFT</button>
-                <button class="control-btn grab-btn" onclick="grabPrize()">⬇ GRAB!</button>
-                <button class="control-btn move-btn" onclick="moveClaw('right')">RIGHT ➡</button>
-            </div>
+      <div class="claw-container">
+        <div class="game-header">
+          <h1>🎯 CLAW MACHINE 🎯</h1>
+          <p>Grab the prizes and answer questions!</p>
         </div>
+
+        <div class="claw-area">
+          <div class="claw" id="claw">
+            <div class="claw-cable"></div>
+            <div class="claw-hook"></div>
+          </div>
+
+          <div class="prize-area" id="prizeArea"></div>
+        </div>
+
+        <div class="controls">
+          <button class="control-btn move-btn" onclick="moveClaw('left')">
+            ⬅ LEFT
+          </button>
+          <button class="control-btn grab-btn" onclick="grabPrize()">
+            ⬇ GRAB!
+          </button>
+          <button class="control-btn move-btn" onclick="moveClaw('right')">
+            RIGHT ➡
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Page 2: Platform Game -->
     <div class="page" id="platformPage">
-        <div class="platform-container">
-            <div class="game-header">
-                <h1>🏆 LEVEL CHALLENGE 🏆</h1>
-                <p>Climb to the top by answering questions!</p>
-            </div>
-
-            <div class="game-board">
-                <div class="player-character" id="player">🎮</div>
-                
-                <div class="level-platform platform-1" id="level1" onclick="attemptLevel(1)">
-                    <div class="level-info">
-                        <span class="level-number">1</span>
-                        <span class="level-icon">❓</span>
-                    </div>
-                    <span style="font-size: 1.2em; font-weight: bold;">START HERE</span>
-                </div>
-                
-                <div class="level-platform platform-2 locked" id="level2" onclick="attemptLevel(2)">
-                    <div class="level-info">
-                        <span class="level-number">2</span>
-                        <span class="level-icon">🔒</span>
-                    </div>
-                </div>
-                
-                <div class="level-platform platform-3 locked" id="level3" onclick="attemptLevel(3)">
-                    <div class="level-info">
-                        <span class="level-number">3</span>
-                        <span class="level-icon">🎯</span>
-                    </div>
-                </div>
-            </div>
+      <div class="platform-container">
+        <div class="game-header">
+          <h1>🏆 LEVEL CHALLENGE 🏆</h1>
+          <p>Climb to the top by answering questions!</p>
         </div>
+
+        <div class="game-board">
+          <div class="player-character" id="player">🎮</div>
+
+          <div
+            class="level-platform platform-1"
+            id="level1"
+            onclick="attemptLevel(1)"
+          >
+            <div class="level-info">
+              <span class="level-number">1</span>
+              <span class="level-icon">❓</span>
+            </div>
+            <span style="font-size: 1.2em; font-weight: bold">START HERE</span>
+          </div>
+
+          <div
+            class="level-platform platform-2 locked"
+            id="level2"
+            onclick="attemptLevel(2)"
+          >
+            <div class="level-info">
+              <span class="level-number">2</span>
+              <span class="level-icon">🔒</span>
+            </div>
+          </div>
+
+          <div
+            class="level-platform platform-3 locked"
+            id="level3"
+            onclick="attemptLevel(3)"
+          >
+            <div class="level-info">
+              <span class="level-number">3</span>
+              <span class="level-icon">🎯</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Page 3: Jigsaw Puzzle -->
     <div class="page" id="puzzlePage">
-        <div class="puzzle-container">
-            <div class="game-header">
-                <h1>🧩 JIGSAW PUZZLE 🧩</h1>
-                <p>Drag and drop pieces to solve the puzzle!</p>
-            </div>
-
-            <div class="puzzle-controls">
-                <button class="reset-btn" onclick="shufflePuzzle()">🔀 Shuffle Pieces</button>
-            </div>
-
-            <div class="puzzle-board" id="puzzleBoard"></div>
+      <div class="puzzle-container">
+        <div class="game-header">
+          <h1>🧩 JIGSAW PUZZLE 🧩</h1>
+          <p>Drag and drop pieces to solve the puzzle!</p>
         </div>
+
+        <div class="puzzle-controls">
+          <button class="reset-btn" onclick="shufflePuzzle()">
+            🔀 Shuffle Pieces
+          </button>
+        </div>
+
+        <div class="puzzle-board" id="puzzleBoard"></div>
+      </div>
     </div>
 
     <!-- Question Modal -->
     <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-content" id="modalContent">
-            <div class="modal-header">
-                <h2 id="modalTitle">Question</h2>
-            </div>
-            <p class="question-text" id="questionText"></p>
-            <input type="text" class="answer-input" id="answerInput" placeholder="Type your answer here...">
-            <button class="modal-btn" id="submitBtn" onclick="submitAnswer()">Submit Answer</button>
-            
-            <div class="feedback-message" id="feedbackMessage"></div>
-            <div class="prize-steps" id="prizeSteps"></div>
+      <div class="modal-content" id="modalContent">
+        <div class="modal-header">
+          <h2 id="modalTitle">Question</h2>
         </div>
+        <p class="question-text" id="questionText"></p>
+        <input
+          type="text"
+          class="answer-input"
+          id="answerInput"
+          placeholder="Type your answer here..."
+        />
+        <button class="modal-btn" id="submitBtn" onclick="submitAnswer()">
+          Submit Answer
+        </button>
+
+        <div class="feedback-message" id="feedbackMessage"></div>
+        <div class="prize-steps" id="prizeSteps"></div>
+      </div>
     </div>
 
     <!-- Win Modal -->
     <div class="modal-overlay" id="winOverlay">
-        <div class="win-modal">
-            <h2>🎉 YOU WIN! 🎉</h2>
-            <p>✨ UPGRADE UNLOCKED ✨</p>
-            <button class="continue-btn" onclick="closeWinModal()">Continue Playing!</button>
-        </div>
+      <div class="win-modal">
+        <h2>🎉 YOU WIN! 🎉</h2>
+        <p>✨ UPGRADE UNLOCKED ✨</p>
+        <button class="continue-btn" onclick="closeWinModal()">
+          Continue Playing!
+        </button>
+      </div>
     </div>
 
     <script>
-        // Game State
-        const gameState = {
-            clawPosition: 50,
-            grabCount: 0,
-            questions: [
-                {
-                    question: "Tagalog of UMYFP",
-                    answer: "kapatiran ng nagkakaisang kabataang metodista sa pilipinas",
-                    steps: "Congratulations! 🎉\n\nYou are ready for the next level \nIf you dont know the answer find clues behind the pubmats in official Facebook page of NELPAC"
-                },
-                {
-                    question: "and to put on the new self, created to be like God in true righteousness and holiness.",
-                    answer: "Ephesians 4:24",
-                    steps: "Well done! 🎯\n\nYou are ready for the next level \nIf you dont know the answer find clues behind the pubmats in official Facebook page of NELPAC"
-                },
-                {
-                    question: "I start at 21 even though I am only 7… what am I?",
-                    answer: "upgrade",
-                    steps: "Excellent! 🌈\n\nTo claim your prize:\n1. Screenshot this website that you finished to answer the 3 questions \n2. Visit the official Facebook page of NELPAC \n3. Comment the Screenshot together with your Final Answer in the last question "
+      // Game State
+      const gameState = {
+        clawPosition: 50,
+        grabCount: 0,
+        questions: [
+          {
+            question: "Tagalog of UMYFP",
+            answer:
+              "kapatiran ng nagkakaisang kabataang metodista sa pilipinas",
+            steps:
+              "Congratulations! 🎉\n\nYou are ready for the next level \nIf you dont know the answer find clues behind the pubmats in official Facebook page of NELPAC",
+          },
+          {
+            question:
+              "and to put on the new self, created to be like God in true righteousness and holiness.",
+            answer: "Ephesians 4:24",
+            steps:
+              "Well done! 🎯\n\nYou are ready for the next level \nIf you dont know the answer find clues behind the pubmats in official Facebook page of NELPAC",
+          },
+          {
+            question: "I start at 21 even though I am only 7… what am I?",
+            answer: "upgrade",
+            steps:
+              "Excellent! 🌈\n\nTo claim your prize:\n1. Screenshot this website that you finished to answer the 3 questions \n2. Visit the official Facebook page of NELPAC \n3. Comment the Screenshot together with your Final Answer in the last question ",
+          },
+        ],
+        currentQuestion: null,
+        currentLevel: 0,
+        completedLevels: [],
+        puzzle: {
+          difficulty: 10,
+          pieces: [],
+          moves: 0,
+          startTime: null,
+          timerInterval: null,
+          draggedPiece: null,
+          uploadedImage: null,
+        },
+      };
 
-                }
-            ],
-            currentQuestion: null,
-            currentLevel: 0,
-            completedLevels: [],
-            puzzle: {
-                difficulty: 10,
-                pieces: [],
-                moves: 0,
-                startTime: null,
-                timerInterval: null,
-                draggedPiece: null,
-                uploadedImage: null
-            }
-        };
+      // Initialize Claw Machine
+      function initClawMachine() {
+        const prizeArea = document.getElementById("prizeArea");
+        prizeArea.innerHTML = "";
 
-        // Initialize Claw Machine
-        function initClawMachine() {
-            const prizeArea = document.getElementById('prizeArea');
-            prizeArea.innerHTML = '';
-            
-            // Create 18 prize balls with random positions
-            const positions = [];
-            for (let i = 0; i < 50; i++) {
-                const ball = document.createElement('div');
-                ball.className = 'prize-ball';
-                ball.dataset.index = i;
-                
-                // Random position
-                const left = 10 + Math.random() * 70;
-                const bottom = 10 + Math.random() * 40;
-                ball.style.left = left + '%';
-                ball.style.bottom = bottom + '%';
-                ball.style.animationDelay = (Math.random() * 2) + 's';
-                
-                positions.push({ left, bottom });
-                prizeArea.appendChild(ball);
-            }
-            
-            gameState.ballPositions = positions;
+        // Create 18 prize balls with random positions
+        const positions = [];
+        for (let i = 0; i < 50; i++) {
+          const ball = document.createElement("div");
+          ball.className = "prize-ball";
+          ball.dataset.index = i;
+
+          // Random position
+          const left = 10 + Math.random() * 70;
+          const bottom = 10 + Math.random() * 40;
+          ball.style.left = left + "%";
+          ball.style.bottom = bottom + "%";
+          ball.style.animationDelay = Math.random() * 2 + "s";
+
+          positions.push({ left, bottom });
+          prizeArea.appendChild(ball);
         }
 
-        // Navigation
-        function switchPage(page) {
-            const buttons = document.querySelectorAll('.nav-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            
-            if (page === 'claw') {
-                document.getElementById('clawPage').classList.add('active');
-                buttons[0].classList.add('active');
-            } else if (page === 'platform') {
-                document.getElementById('platformPage').classList.add('active');
-                buttons[1].classList.add('active');
-            } else if (page === 'puzzle') {
-                document.getElementById('puzzlePage').classList.add('active');
-                buttons[2].classList.add('active');
-            }
-        }
+        gameState.ballPositions = positions;
+      }
 
-        // Claw Machine Controls
-        function moveClaw(direction) {
-            const claw = document.getElementById('claw');
-            if (direction === 'left' && gameState.clawPosition > 15) {
-                gameState.clawPosition -= 15;
-            } else if (direction === 'right' && gameState.clawPosition < 85) {
-                gameState.clawPosition += 15;
-            }
-            claw.style.left = gameState.clawPosition + '%';
-        }
+      // Navigation
+      function switchPage(page) {
+        const buttons = document.querySelectorAll(".nav-btn");
+        buttons.forEach((btn) => btn.classList.remove("active"));
 
-        function grabPrize() {
-            gameState.grabCount++;
-            const claw = document.getElementById('claw');
-            const prizeArea = document.getElementById('prizeArea');
-            const clawAreaRect = prizeArea.getBoundingClientRect();
-            
-            // Disable buttons during animation
-            const buttons = document.querySelectorAll('.control-btn');
-            buttons.forEach(btn => btn.disabled = true);
-            
-            // Animate claw down
-            claw.style.top = '320px';
-            
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+
+        if (page === "claw") {
+          document.getElementById("clawPage").classList.add("active");
+          buttons[0].classList.add("active");
+        } else if (page === "platform") {
+          document.getElementById("platformPage").classList.add("active");
+          buttons[1].classList.add("active");
+        } else if (page === "puzzle") {
+          document.getElementById("puzzlePage").classList.add("active");
+          buttons[2].classList.add("active");
+        }
+      }
+
+      // Claw Machine Controls
+      function moveClaw(direction) {
+        const claw = document.getElementById("claw");
+        if (direction === "left" && gameState.clawPosition > 15) {
+          gameState.clawPosition -= 15;
+        } else if (direction === "right" && gameState.clawPosition < 85) {
+          gameState.clawPosition += 15;
+        }
+        claw.style.left = gameState.clawPosition + "%";
+      }
+
+      function grabPrize() {
+        gameState.grabCount++;
+        const claw = document.getElementById("claw");
+        const prizeArea = document.getElementById("prizeArea");
+        const clawAreaRect = prizeArea.getBoundingClientRect();
+
+        // Disable buttons during animation
+        const buttons = document.querySelectorAll(".control-btn");
+        buttons.forEach((btn) => (btn.disabled = true));
+
+        // Animate claw down
+        claw.style.top = "320px";
+
+        setTimeout(() => {
+          // Get claw position relative to prize area
+          const clawRect = claw.getBoundingClientRect();
+          const clawCenterX = clawRect.left + clawRect.width / 2;
+          const clawCenterY = clawRect.top + clawRect.height;
+
+          // Check if claw caught any ball
+          const balls = document.querySelectorAll(".prize-ball:not(.grabbed)");
+          let caughtBall = null;
+          let minDistance = Infinity;
+
+          balls.forEach((ball) => {
+            const ballRect = ball.getBoundingClientRect();
+            const ballCenterX = ballRect.left + ballRect.width / 2;
+            const ballCenterY = ballRect.top + ballRect.height / 2;
+
+            const distance = Math.sqrt(
+              Math.pow(ballCenterX - clawCenterX, 2) +
+                Math.pow(ballCenterY - clawCenterY, 2)
+            );
+
+            // Increased catch range to 120 pixels for easier grabbing
+            if (distance < 120 && distance < minDistance) {
+              minDistance = distance;
+              caughtBall = ball;
+            }
+          });
+
+          // Animate grabbed ball
+          if (caughtBall) {
+            caughtBall.classList.add("grabbed");
+
+            // Create new ball to maintain count
             setTimeout(() => {
-                // Get claw position relative to prize area
-                const clawRect = claw.getBoundingClientRect();
-                const clawCenterX = clawRect.left + clawRect.width / 2;
-                const clawCenterY = clawRect.top + clawRect.height;
-                
-                // Check if claw caught any ball
-                const balls = document.querySelectorAll('.prize-ball:not(.grabbed)');
-                let caughtBall = null;
-                let minDistance = Infinity;
-                
-                balls.forEach(ball => {
-                    const ballRect = ball.getBoundingClientRect();
-                    const ballCenterX = ballRect.left + ballRect.width / 2;
-                    const ballCenterY = ballRect.top + ballRect.height / 2;
-                    
-                    const distance = Math.sqrt(
-                        Math.pow(ballCenterX - clawCenterX, 2) + 
-                        Math.pow(ballCenterY - clawCenterY, 2)
-                    );
-                    
-                    // Increased catch range to 120 pixels for easier grabbing
-                    if (distance < 120 && distance < minDistance) {
-                        minDistance = distance;
-                        caughtBall = ball;
-                    }
-                });
-                
-                // Animate grabbed ball
-                if (caughtBall) {
-                    caughtBall.classList.add('grabbed');
-                    
-                    // Create new ball to maintain count
-                    setTimeout(() => {
-                        caughtBall.remove();
-                        const newBall = document.createElement('div');
-                        newBall.className = 'prize-ball';
-                        const left = 10 + Math.random() * 70;
-                        const bottom = 10 + Math.random() * 40;
-                        newBall.style.left = left + '%';
-                        newBall.style.bottom = bottom + '%';
-                        newBall.style.animationDelay = (Math.random() * 2) + 's';
-                        document.getElementById('prizeArea').appendChild(newBall);
-                    }, 800);
-                }
-                
-                // Claw back up
-                setTimeout(() => {
-                    claw.style.top = '20px';
-                    
-                    setTimeout(() => {
-                        // Re-enable buttons
-                        buttons.forEach(btn => btn.disabled = false);
-                        
-                        // Check if it's the 300th grab
-                        if (gameState.grabCount >= 300) {
-                            showWinModal();
-                        } else if (caughtBall) {
-                            // Show random question only if caught a ball
-                            showRandomQuestion();
-                        }
-                    }, 500);
-                }, 300);
+              caughtBall.remove();
+              const newBall = document.createElement("div");
+              newBall.className = "prize-ball";
+              const left = 10 + Math.random() * 70;
+              const bottom = 10 + Math.random() * 40;
+              newBall.style.left = left + "%";
+              newBall.style.bottom = bottom + "%";
+              newBall.style.animationDelay = Math.random() * 2 + "s";
+              document.getElementById("prizeArea").appendChild(newBall);
             }, 800);
+          }
+
+          // Claw back up
+          setTimeout(() => {
+            claw.style.top = "20px";
+
+            setTimeout(() => {
+              // Re-enable buttons
+              buttons.forEach((btn) => (btn.disabled = false));
+
+              // Check if it's the 300th grab
+              if (gameState.grabCount >= 300) {
+                showWinModal();
+              } else if (caughtBall) {
+                // Show random question only if caught a ball
+                showRandomQuestion();
+              }
+            }, 500);
+          }, 300);
+        }, 800);
+      }
+
+      function showRandomQuestion() {
+        const randomIndex = Math.floor(
+          Math.random() * gameState.questions.length
+        );
+        const question = gameState.questions[randomIndex];
+
+        gameState.currentQuestion = question;
+        gameState.currentContext = "claw";
+
+        document.getElementById("modalTitle").textContent =
+          "Question Collected! 🎯";
+        document.getElementById("questionText").textContent = question.question;
+        document.getElementById("answerInput").style.display = "none";
+        document.getElementById("submitBtn").style.display = "none";
+        document
+          .getElementById("feedbackMessage")
+          .classList.remove("show", "correct", "incorrect");
+        document.getElementById("prizeSteps").classList.remove("show");
+
+        // Show close button
+        let closeBtn = document.getElementById("closeBtn");
+        if (!closeBtn) {
+          closeBtn = document.createElement("button");
+          closeBtn.id = "closeBtn";
+          closeBtn.className = "modal-btn";
+          closeBtn.textContent = "Got it!";
+          closeBtn.onclick = () => {
+            document.getElementById("modalOverlay").classList.remove("active");
+          };
+          document.querySelector(".modal-content").appendChild(closeBtn);
+        }
+        closeBtn.style.display = "block";
+
+        document.getElementById("modalOverlay").classList.add("active");
+      }
+
+      function showWinModal() {
+        document.getElementById("winOverlay").classList.add("active");
+      }
+
+      function closeWinModal() {
+        document.getElementById("winOverlay").classList.remove("active");
+      }
+
+      // Jigsaw Puzzle Functions
+      // Embedded puzzle image (colorful abstract pattern)
+      const PUZZLE_IMAGE = "ayf.png"; // Replace with your image URL or base64 data
+
+      function initPuzzle() {
+        const size = 10; // 10x10 = 100 pieces
+
+        gameState.puzzle.uploadedImage = PUZZLE_IMAGE;
+
+        // Create pieces
+        const pieces = [];
+        for (let i = 0; i < size * size; i++) {
+          pieces.push({
+            id: i,
+            currentPos: i,
+            correctPos: i,
+          });
         }
 
-        function showRandomQuestion() {
-            const randomIndex = Math.floor(Math.random() * gameState.questions.length);
-            const question = gameState.questions[randomIndex];
-            
-            gameState.currentQuestion = question;
-            gameState.currentContext = 'claw';
-            
-            document.getElementById('modalTitle').textContent = 'Question Collected! 🎯';
-            document.getElementById('questionText').textContent = question.question;
-            document.getElementById('answerInput').style.display = 'none';
-            document.getElementById('submitBtn').style.display = 'none';
-            document.getElementById('feedbackMessage').classList.remove('show', 'correct', 'incorrect');
-            document.getElementById('prizeSteps').classList.remove('show');
-            
-            // Show close button
-            let closeBtn = document.getElementById('closeBtn');
-            if (!closeBtn) {
-                closeBtn = document.createElement('button');
-                closeBtn.id = 'closeBtn';
-                closeBtn.className = 'modal-btn';
-                closeBtn.textContent = 'Got it!';
-                closeBtn.onclick = () => {
-                    document.getElementById('modalOverlay').classList.remove('active');
-                };
-                document.querySelector('.modal-content').appendChild(closeBtn);
-            }
-            closeBtn.style.display = 'block';
-            
-            document.getElementById('modalOverlay').classList.add('active');
+        // Shuffle pieces
+        for (let i = pieces.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pieces[i].currentPos, pieces[j].currentPos] = [
+            pieces[j].currentPos,
+            pieces[i].currentPos,
+          ];
         }
 
-        function showWinModal() {
-            document.getElementById('winOverlay').classList.add('active');
+        gameState.puzzle.pieces = pieces;
+        renderPuzzle();
+      }
+
+      function shufflePuzzle() {
+        const pieces = gameState.puzzle.pieces;
+
+        // Shuffle pieces
+        for (let i = pieces.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pieces[i].currentPos, pieces[j].currentPos] = [
+            pieces[j].currentPos,
+            pieces[i].currentPos,
+          ];
         }
 
-        function closeWinModal() {
-            document.getElementById('winOverlay').classList.remove('active');
+        renderPuzzle();
+      }
+
+      function renderPuzzle() {
+        const board = document.getElementById("puzzleBoard");
+        const size = 10;
+        board.innerHTML = "";
+
+        // Sort by current position
+        const sortedPieces = [...gameState.puzzle.pieces].sort(
+          (a, b) => a.currentPos - b.currentPos
+        );
+
+        sortedPieces.forEach((piece) => {
+          const div = document.createElement("div");
+          div.className = "puzzle-piece";
+          div.draggable = true;
+          div.dataset.id = piece.id;
+
+          // Calculate background position for the piece
+          const correctRow = Math.floor(piece.id / size);
+          const correctCol = piece.id % size;
+
+          div.style.backgroundImage = `url(${gameState.puzzle.uploadedImage})`;
+          div.style.backgroundPosition = `${(correctCol * 100) / (size - 1)}% ${
+            (correctRow * 100) / (size - 1)
+          }%`;
+
+          // Check if in correct position
+          if (piece.currentPos === piece.correctPos) {
+            div.classList.add("correct");
+          }
+
+          // Drag events
+          div.addEventListener("dragstart", handleDragStart);
+          div.addEventListener("dragover", handleDragOver);
+          div.addEventListener("drop", handleDrop);
+          div.addEventListener("dragend", handleDragEnd);
+
+          board.appendChild(div);
+        });
+      }
+
+      function handleDragStart(e) {
+        gameState.puzzle.draggedPiece = parseInt(e.target.dataset.id);
+        e.target.classList.add("dragging");
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+
+        const draggedId = gameState.puzzle.draggedPiece;
+        const targetId = parseInt(e.target.dataset.id);
+
+        if (draggedId === targetId) return;
+
+        const pieces = gameState.puzzle.pieces;
+
+        // Swap current positions
+        const draggedPiece = pieces.find((p) => p.id === draggedId);
+        const targetPiece = pieces.find((p) => p.id === targetId);
+
+        const tempPos = draggedPiece.currentPos;
+        draggedPiece.currentPos = targetPiece.currentPos;
+        targetPiece.currentPos = tempPos;
+
+        // Increase move count
+        gameState.puzzle.moves += 1;
+
+        // Re-render puzzle
+        renderPuzzle();
+
+        // Check if puzzle is complete
+        const allCorrect = pieces.every((p) => p.currentPos === p.correctPos);
+        if (allCorrect) {
+          clearInterval(gameState.puzzle.timerInterval);
+          setTimeout(() => {
+            alert(`🎉 Puzzle Completed in ${gameState.puzzle.moves} moves! 🎉`);
+          }, 200);
+        }
+      }
+
+      function handleDragEnd(e) {
+        e.target.classList.remove("dragging");
+      }
+
+      function checkWin() {
+        const allCorrect = gameState.puzzle.pieces.every(
+          (p) => p.currentPos === p.correctPos
+        );
+
+        if (allCorrect) {
+          setTimeout(() => {
+            alert("🎉 Puzzle Complete! Congratulations! 🎉. Screenshot this and post it in the comment section in the official facebook page of NELPAC in dedicated pubmat together with the #BECAMETHECHANGE! #NELPAC #AYF2026");
+          }, 500);
+        }
+      }
+
+      // Platform Game
+      function attemptLevel(level) {
+        const levelElement = document.getElementById(`level${level}`);
+
+        if (levelElement.classList.contains("locked")) {
+          return; // Can't access locked levels
         }
 
-        // Jigsaw Puzzle Functions
-        // Embedded puzzle image (colorful abstract pattern)
-        const PUZZLE_IMAGE = 'ayf.png'; // Replace with your image URL or base64 data
-
-        function initPuzzle() {
-            const size = 10; // 10x10 = 100 pieces
-            
-            gameState.puzzle.uploadedImage = PUZZLE_IMAGE;
-            
-            // Create pieces
-            const pieces = [];
-            for (let i = 0; i < size * size; i++) {
-                pieces.push({
-                    id: i,
-                    currentPos: i,
-                    correctPos: i
-                });
-            }
-            
-            // Shuffle pieces
-            for (let i = pieces.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [pieces[i].currentPos, pieces[j].currentPos] = [pieces[j].currentPos, pieces[i].currentPos];
-            }
-            
-            gameState.puzzle.pieces = pieces;
-            renderPuzzle();
+        if (gameState.completedLevels.includes(level)) {
+          return; // Already completed
         }
 
-        function shufflePuzzle() {
-            const pieces = gameState.puzzle.pieces;
-            
-            // Shuffle pieces
-            for (let i = pieces.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [pieces[i].currentPos, pieces[j].currentPos] = [pieces[j].currentPos, pieces[i].currentPos];
-            }
-            
-            renderPuzzle();
+        gameState.currentLevel = level;
+        gameState.currentContext = "platform";
+
+        const question = gameState.questions[level - 1];
+        gameState.currentQuestion = question;
+
+        document.getElementById(
+          "modalTitle"
+        ).textContent = `Level ${level} - Submit Answer`;
+        document.getElementById(
+          "questionText"
+        ).textContent = `Enter your answer for Question ${level}:`;
+        document.getElementById("answerInput").value = "";
+        document.getElementById("answerInput").style.display = "block";
+        document.getElementById("submitBtn").style.display = "block";
+        document
+          .getElementById("feedbackMessage")
+          .classList.remove("show", "correct", "incorrect");
+        document.getElementById("prizeSteps").classList.remove("show");
+
+        // Hide close button if it exists
+        const closeBtn = document.getElementById("closeBtn");
+        if (closeBtn) {
+          closeBtn.style.display = "none";
         }
 
-        function renderPuzzle() {
-            const board = document.getElementById('puzzleBoard');
-            const size = 10;
-            board.innerHTML = '';
-            
-            // Sort by current position
-            const sortedPieces = [...gameState.puzzle.pieces].sort((a, b) => a.currentPos - b.currentPos);
-            
-            sortedPieces.forEach((piece) => {
-                const div = document.createElement('div');
-                div.className = 'puzzle-piece';
-                div.draggable = true;
-                div.dataset.id = piece.id;
-                
-                // Calculate background position for the piece
-                const correctRow = Math.floor(piece.id / size);
-                const correctCol = piece.id % size;
-                
-                div.style.backgroundImage = `url(${gameState.puzzle.uploadedImage})`;
-                div.style.backgroundPosition = `${correctCol * 100 / (size - 1)}% ${correctRow * 100 / (size - 1)}%`;
-                
-                // Check if in correct position
-                if (piece.currentPos === piece.correctPos) {
-                    div.classList.add('correct');
-                }
-                
-                // Drag events
-                div.addEventListener('dragstart', handleDragStart);
-                div.addEventListener('dragover', handleDragOver);
-                div.addEventListener('drop', handleDrop);
-                div.addEventListener('dragend', handleDragEnd);
-                
-                board.appendChild(div);
-            });
-        }
+        document.getElementById("modalOverlay").classList.add("active");
+      }
 
-        function handleDragStart(e) {
-            gameState.puzzle.draggedPiece = parseInt(e.target.dataset.id);
-            e.target.classList.add('dragging');
-        }
+      function submitAnswer() {
+        const userAnswer = document
+          .getElementById("answerInput")
+          .value.trim()
+          .toLowerCase();
+        const correctAnswer = gameState.currentQuestion.answer.toLowerCase();
+        const feedback = document.getElementById("feedbackMessage");
+        const steps = document.getElementById("prizeSteps");
 
-        function handleDragOver(e) {
-            e.preventDefault();
-        }
+        if (userAnswer === correctAnswer) {
+          // Correct answer
+          feedback.textContent = "✅ Your answer is correct!";
+          feedback.className = "feedback-message correct show";
 
-        function handleDrop(e) {
-            e.preventDefault();
-            
-            const draggedId = gameState.puzzle.draggedPiece;
-            const targetId = parseInt(e.target.dataset.id);
-            
-            if (draggedId === targetId) return;
-            
-            // Swap positions
-            const piece1 = gameState.puzzle.pieces.find(p => p.id === draggedId);
-            const piece2 = gameState.puzzle.pieces.find(p => p.id === targetId);
-            
-            if (piece1 && piece2) {
-                [piece1.currentPos, piece2.currentPos] = [piece2.currentPos, piece1.currentPos];
-                renderPuzzle();
-                checkWin();
-            }
-        }
-
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
-        }
-
-        function checkWin() {
-            const allCorrect = gameState.puzzle.pieces.every(p => p.currentPos === p.correctPos);
-            
-            if (allCorrect) {
-                setTimeout(() => {
-                    alert('🎉 Puzzle Complete! Congratulations! 🎉');
-                }, 500);
-            }
-        }
-
-        // Platform Game
-        function attemptLevel(level) {
-            const levelElement = document.getElementById(`level${level}`);
-            
-            if (levelElement.classList.contains('locked')) {
-                return; // Can't access locked levels
-            }
-            
-            if (gameState.completedLevels.includes(level)) {
-                return; // Already completed
-            }
-            
-            gameState.currentLevel = level;
-            gameState.currentContext = 'platform';
-            
-            const question = gameState.questions[level - 1];
-            gameState.currentQuestion = question;
-            
-            document.getElementById('modalTitle').textContent = `Level ${level} - Submit Answer`;
-            document.getElementById('questionText').textContent = `Enter your answer for Question ${level}:`;
-            document.getElementById('answerInput').value = '';
-            document.getElementById('answerInput').style.display = 'block';
-            document.getElementById('submitBtn').style.display = 'block';
-            document.getElementById('feedbackMessage').classList.remove('show', 'correct', 'incorrect');
-            document.getElementById('prizeSteps').classList.remove('show');
-            
-            // Hide close button if it exists
-            const closeBtn = document.getElementById('closeBtn');
-            if (closeBtn) {
-                closeBtn.style.display = 'none';
-            }
-            
-            document.getElementById('modalOverlay').classList.add('active');
-        }
-
-        function submitAnswer() {
-            const userAnswer = document.getElementById('answerInput').value.trim().toLowerCase();
-            const correctAnswer = gameState.currentQuestion.answer.toLowerCase();
-            const feedback = document.getElementById('feedbackMessage');
-            const steps = document.getElementById('prizeSteps');
-            
-            if (userAnswer === correctAnswer) {
-                // Correct answer
-                feedback.textContent = '✅ Your answer is correct!';
-                feedback.className = 'feedback-message correct show';
-                
-                steps.innerHTML = `
+          steps.innerHTML = `
                     <h3>🎁 How to Claim Your Prize:</h3>
-                    <p>${gameState.currentQuestion.steps.replace(/\n/g, '<br>')}</p>
+                    <p>${gameState.currentQuestion.steps.replace(
+                      /\n/g,
+                      "<br>"
+                    )}</p>
                 `;
-                steps.classList.add('show');
-                
-                if (gameState.currentContext === 'platform') {
-                    // Update platform game
-                    const currentLevel = gameState.currentLevel;
-                    gameState.completedLevels.push(currentLevel);
-                    
-                    const levelElement = document.getElementById(`level${currentLevel}`);
-                    levelElement.classList.add('completed');
-                    levelElement.querySelector('.level-icon').textContent = '✅';
-                    
-                    // Move player
-                    const player = document.getElementById('player');
-                    const positions = [80, 270, 460];
-                    player.style.bottom = positions[currentLevel - 1] + 'px';
-                    
-                    // Unlock next level
-                    if (currentLevel < 3) {
-                        setTimeout(() => {
-                            const nextLevel = document.getElementById(`level${currentLevel + 1}`);
-                            nextLevel.classList.remove('locked');
-                            nextLevel.querySelector('.level-icon').textContent = '❓';
-                        }, 1000);
-                    }
-                    
-                    // Close modal after delay
-                    setTimeout(() => {
-                        document.getElementById('modalOverlay').classList.remove('active');
-                        
-                        if (currentLevel === 3) {
-                            setTimeout(() => {
-                                alert('🎉 Congratulations! You have completed all levels! 🎉');
-                            }, 500);
-                        }
-                    }, 3000);
-                } else {
-                    // Claw machine - close after delay
-                    setTimeout(() => {
-                        document.getElementById('modalOverlay').classList.remove('active');
-                    }, 3000);
-                }
-            } else {
-                // Incorrect answer
-                feedback.textContent = '❌ Incorrect! Please try again.';
-                feedback.className = 'feedback-message incorrect show';
-                steps.classList.remove('show');
-            }
-        }
+          steps.classList.add("show");
 
-        // Initialize game on load
-        initClawMachine();
-        initPuzzle();
+          if (gameState.currentContext === "platform") {
+            // Update platform game
+            const currentLevel = gameState.currentLevel;
+            gameState.completedLevels.push(currentLevel);
+
+            const levelElement = document.getElementById(
+              `level${currentLevel}`
+            );
+            levelElement.classList.add("completed");
+            levelElement.querySelector(".level-icon").textContent = "✅";
+
+            // Move player
+            const player = document.getElementById("player");
+            const positions = [80, 270, 460];
+            player.style.bottom = positions[currentLevel - 1] + "px";
+
+            // Unlock next level
+            if (currentLevel < 3) {
+              setTimeout(() => {
+                const nextLevel = document.getElementById(
+                  `level${currentLevel + 1}`
+                );
+                nextLevel.classList.remove("locked");
+                nextLevel.querySelector(".level-icon").textContent = "❓";
+              }, 1000);
+            }
+
+            // Close modal after delay
+            setTimeout(() => {
+              document
+                .getElementById("modalOverlay")
+                .classList.remove("active");
+
+              if (currentLevel === 3) {
+                setTimeout(() => {
+                  alert(
+                    "🎉 Congratulations! You have completed all levels! 🎉"
+                  );
+                }, 500);
+              }
+            }, 3000);
+          } else {
+            // Claw machine - close after delay
+            setTimeout(() => {
+              document
+                .getElementById("modalOverlay")
+                .classList.remove("active");
+            }, 3000);
+          }
+        } else {
+          // Incorrect answer
+          feedback.textContent = "❌ Incorrect! Please try again.";
+          feedback.className = "feedback-message incorrect show";
+          steps.classList.remove("show");
+        }
+      }
+
+      // Initialize game on load
+      initClawMachine();
+      initPuzzle();
     </script>
-</body>
+  </body>
 </html>
