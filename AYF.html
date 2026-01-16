@@ -113,6 +113,22 @@
         background-clip: text;
       }
 
+      .puzzle-piece {
+        touch-action: manipulation; /* prevents zoom */
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      .puzzle-piece.selected {
+        border: 3px solid #f6ad55;
+        box-shadow: 0 0 20px rgba(246, 173, 85, 0.9);
+        transform: scale(1.08);
+        z-index: 20;
+      }
+
+      .puzzle-piece.correct {
+        border-color: #48bb78;
+      }
       .game-header p {
         font-size: 1.2em;
         color: #cbd5e0;
@@ -429,6 +445,22 @@
           opacity: 1;
         }
       }
+      .puzzle-piece {
+        touch-action: manipulation; /* prevents zoom */
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      .puzzle-piece.selected {
+        border: 3px solid #f6ad55;
+        box-shadow: 0 0 20px rgba(246, 173, 85, 0.9);
+        transform: scale(1.08);
+        z-index: 20;
+      }
+
+      .puzzle-piece.correct {
+        border-color: #48bb78;
+      }
 
       .modal-header {
         margin-bottom: 25px;
@@ -596,6 +628,33 @@
         padding: 40px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
       }
+      #rotateOverlay {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #1a202c, #2d3748);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      #rotateOverlay.show {
+        display: flex;
+      }
+
+      .rotate-box {
+        color: #f6ad55;
+        font-size: 2em;
+        font-weight: bold;
+      }
+
+      .rotate-box span {
+        display: block;
+        font-size: 0.6em;
+        color: #cbd5e0;
+        margin-top: 10px;
+      }
 
       .puzzle-controls {
         display: flex;
@@ -650,11 +709,12 @@
         background-size: 1000% 1000%;
         background-position: center;
         border: 1px solid rgba(74, 85, 104, 0.5);
-        cursor: move;
+        cursor: pointer;
         transition: all 0.2s ease;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         user-select: none;
         position: relative;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .puzzle-piece:hover {
@@ -664,9 +724,11 @@
         border-color: #f6ad55;
       }
 
-      .puzzle-piece.dragging {
-        opacity: 0.4;
-        cursor: grabbing;
+      .puzzle-piece.selected {
+        border: 3px solid #f6ad55;
+        box-shadow: 0 0 20px rgba(246, 173, 85, 0.8);
+        transform: scale(1.08);
+        z-index: 15;
       }
 
       .puzzle-piece.correct {
@@ -760,6 +822,12 @@
     </style>
   </head>
   <body>
+    <div id="rotateOverlay">
+      <div class="rotate-box">
+        🔄 Rotate your device<br />
+        <span>Landscape mode required</span>
+      </div>
+    </div>
     <!-- Navigation Bar -->
     <nav class="navbar">
       <div class="navbar-brand">🎮 ARCADE GAMES</div>
@@ -944,6 +1012,7 @@
           timerInterval: null,
           draggedPiece: null,
           uploadedImage: null,
+          selectedPiece: null,
         },
       };
 
@@ -954,7 +1023,7 @@
 
         // Create 18 prize balls with random positions
         const positions = [];
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 70; i++) {
           const ball = document.createElement("div");
           ball.className = "prize-ball";
           ball.dataset.index = i;
@@ -1016,7 +1085,7 @@
         buttons.forEach((btn) => (btn.disabled = true));
 
         // Animate claw down
-        claw.style.top = "320px";
+        claw.style.top = "220px";
 
         setTimeout(() => {
           // Get claw position relative to prize area
@@ -1040,7 +1109,7 @@
             );
 
             // Increased catch range to 120 pixels for easier grabbing
-            if (distance < 70 && distance < minDistance) {
+            if (distance < 120 && distance < minDistance) {
               minDistance = distance;
               caughtBall = ball;
             }
@@ -1130,7 +1199,7 @@
 
       // Jigsaw Puzzle Functions
       // Embedded puzzle image (colorful abstract pattern)
-      const PUZZLE_IMAGE = "ayf.png"; // Replace with your image URL or base64 data
+      const PUZZLE_IMAGE = "ayf.png";
 
       function initPuzzle() {
         const size = 10; // 10x10 = 100 pieces
@@ -1188,7 +1257,6 @@
         sortedPieces.forEach((piece) => {
           const div = document.createElement("div");
           div.className = "puzzle-piece";
-          div.draggable = true;
           div.dataset.id = piece.id;
 
           // Calculate background position for the piece
@@ -1205,61 +1273,50 @@
             div.classList.add("correct");
           }
 
-          // Drag events
-          div.addEventListener("dragstart", handleDragStart);
-          div.addEventListener("dragover", handleDragOver);
-          div.addEventListener("drop", handleDrop);
-          div.addEventListener("dragend", handleDragEnd);
+          // Check if selected
+          if (gameState.puzzle.selectedPiece === piece.id) {
+            div.classList.add("selected");
+          }
+
+          // Click event
+          div.addEventListener("click", () => handlePieceClick(piece.id));
+
+          // Touch support for mobile
+          div.addEventListener("touchend", (e) => {
+            e.preventDefault();
+            handlePieceClick(piece.id);
+          });
 
           board.appendChild(div);
         });
       }
 
-      function handleDragStart(e) {
-        gameState.puzzle.draggedPiece = parseInt(e.target.dataset.id);
-        e.target.classList.add("dragging");
-      }
+      function handlePieceClick(pieceId) {
+        if (gameState.puzzle.selectedPiece === null) {
+          // First piece selected
+          gameState.puzzle.selectedPiece = pieceId;
+          renderPuzzle();
+        } else if (gameState.puzzle.selectedPiece === pieceId) {
+          // Same piece clicked - deselect
+          gameState.puzzle.selectedPiece = null;
+          renderPuzzle();
+        } else {
+          // Second piece selected - swap
+          const piece1 = gameState.puzzle.pieces.find(
+            (p) => p.id === gameState.puzzle.selectedPiece
+          );
+          const piece2 = gameState.puzzle.pieces.find((p) => p.id === pieceId);
 
-      function handleDragOver(e) {
-        e.preventDefault();
-      }
-
-      function handleDrop(e) {
-        e.preventDefault();
-
-        const draggedId = gameState.puzzle.draggedPiece;
-        const targetId = parseInt(e.target.dataset.id);
-
-        if (draggedId === targetId) return;
-
-        const pieces = gameState.puzzle.pieces;
-
-        // Swap current positions
-        const draggedPiece = pieces.find((p) => p.id === draggedId);
-        const targetPiece = pieces.find((p) => p.id === targetId);
-
-        const tempPos = draggedPiece.currentPos;
-        draggedPiece.currentPos = targetPiece.currentPos;
-        targetPiece.currentPos = tempPos;
-
-        // Increase move count
-        gameState.puzzle.moves += 1;
-
-        // Re-render puzzle
-        renderPuzzle();
-
-        // Check if puzzle is complete
-        const allCorrect = pieces.every((p) => p.currentPos === p.correctPos);
-        if (allCorrect) {
-          clearInterval(gameState.puzzle.timerInterval);
-          setTimeout(() => {
-            alert(`🎉 Puzzle Completed in ${gameState.puzzle.moves} moves! 🎉`);
-          }, 200);
+          if (piece1 && piece2) {
+            [piece1.currentPos, piece2.currentPos] = [
+              piece2.currentPos,
+              piece1.currentPos,
+            ];
+            gameState.puzzle.selectedPiece = null;
+            renderPuzzle();
+            checkWin();
+          }
         }
-      }
-
-      function handleDragEnd(e) {
-        e.target.classList.remove("dragging");
       }
 
       function checkWin() {
@@ -1269,7 +1326,7 @@
 
         if (allCorrect) {
           setTimeout(() => {
-            alert("🎉 Puzzle Complete! Congratulations! 🎉. Screenshot this and post it in the comment section in the official facebook page of NELPAC in dedicated pubmat together with the #BECAMETHECHANGE! #NELPAC #AYF2026");
+            alert("🎉 Puzzle Complete! Congratulations! 🎉");
           }, 500);
         }
       }
@@ -1394,7 +1451,30 @@
           steps.classList.remove("show");
         }
       }
+      function checkOrientation() {
+        const overlay = document.getElementById("rotateOverlay");
+        if (window.innerHeight > window.innerWidth) {
+          overlay.classList.add("show");
+        } else {
+          overlay.classList.remove("show");
+        }
+      }
 
+      window.addEventListener("resize", checkOrientation);
+      window.addEventListener("orientationchange", checkOrientation);
+      window.addEventListener("load", checkOrientation);
+      function lockLandscape() {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock("landscape").catch(() => {
+            console.log("Orientation lock not supported");
+          });
+        }
+      }
+
+      // Try to lock when page loads
+      window.addEventListener("load", () => {
+        lockLandscape();
+      });
       // Initialize game on load
       initClawMachine();
       initPuzzle();
